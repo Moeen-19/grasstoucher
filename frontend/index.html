@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GrassToucher: The Real-World RPG</title>
+  
+  <!-- Sentry SDK for Browser Tracing -->
+  <script
+  src="https://js-de.sentry-cdn.com/f418b9f2da54a51c07fa17a364594eeb.min.js"
+  crossorigin="anonymous"></script>
+  <!-- Optional Configuration & Load Handler -->
+  <script>
+  Sentry.onLoad(function() {
+    Sentry.init({
+      tracesSampleRate: 1.0, // Captures 100% of performance traces
+    });
+  });
+  </script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            forest: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+              950: '#052e16',
+            },
+            rpg: {
+              gold: '#f59e0b',
+              goldLight: '#fbbf24',
+              card: '#0f172a',
+              cardBorder: '#1e293b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- WebLLM CDN Import Map -->
+  <script type="importmap">
+  {
+    "imports": {
+      "@mlc-ai/web-llm": "https://esm.run/@mlc-ai/web-llm"
+    }
+  }
+  </script>
+
+  <style>
+    /* Smooth transitions and custom mobile scrolling */
+    body {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom, 1rem);
+    }
+  </style>
+</head>
+<body class="min-h-full flex flex-col font-sans antialiased bg-slate-950 text-slate-100 selection:bg-forest-600 selection:text-white">
+  
+  <!-- Toast Notification Container (Phase 4) -->
+  <div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4 pointer-events-none space-y-2"></div>
+
+  <!-- Outer Mobile-First Container -->
+  <div class="w-full max-w-md mx-auto flex-1 flex flex-col min-h-screen border-x border-slate-900 bg-slate-950 shadow-2xl relative pb-28">
+    
+    <!-- Top App Bar / Header -->
+    <header class="sticky top-0 z-20 backdrop-blur-md bg-slate-950/85 border-b border-slate-800/80 px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-forest-500 to-forest-700 flex items-center justify-center shadow-lg shadow-forest-900/40 border border-forest-400/30">
+          <span class="text-xl">🌿</span>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
+            GrassToucher
+            <span class="text-[10px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded bg-forest-900/60 text-forest-300 border border-forest-700/50">RPG</span>
+          </h1>
+          <p class="text-[11px] text-slate-400">The Real-World Adventure</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Active Provider Badge -->
+        <div id="activeProviderBadge" class="hidden sm:flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-slate-800/80 text-forest-300 border border-slate-700/60">
+          <span class="w-1.5 h-1.5 rounded-full bg-forest-400 animate-pulse"></span>
+          <span id="providerBadgeText">WebLLM</span>
+        </div>
+
+        <!-- Settings Button -->
+        <button id="openSettingsBtn" type="button" aria-label="Open Settings" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition active:scale-95">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Character & Stats Bar -->
+    <section class="px-4 py-3 bg-gradient-to-b from-slate-900/90 to-slate-950 border-b border-slate-900">
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-slate-900/60 rounded-xl p-2.5 border border-slate-800/60 text-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Level</span>
+          <div class="text-base font-extrabold text-forest-400" id="playerLevel">1</div>
+        </div>
+        <div class="bg-slate-900/60 rounded-xl p-2.5 border border-slate-800/60 text-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total XP</span>
+          <div class="text-base font-extrabold text-amber-400" id="playerXP">0</div>
+        </div>
+        <div class="bg-slate-900/60 rounded-xl p-2.5 border border-slate-800/60 text-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Quests Done</span>
+          <div class="text-base font-extrabold text-emerald-400" id="playerQuestsCount">0</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 px-4 py-4 space-y-4">
+      
+      <!-- Geolocation / Biome Radar Card -->
+      <section class="rounded-2xl bg-slate-900/80 border border-slate-800 p-3.5 relative overflow-hidden shadow-sm">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-lg bg-emerald-950/80 border border-emerald-700/40 flex items-center justify-center text-emerald-400 shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Current Biome</span>
+                <span id="gpsSignalDot" class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              </div>
+              <h2 id="biomeDescription" class="text-sm font-semibold text-slate-200 mt-0.5">
+                Ready to scan surroundings...
+              </h2>
+            </div>
+          </div>
+          <button id="refreshGpsBtn" type="button" title="Refresh Location" class="text-xs px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+            Scan GPS
+          </button>
+        </div>
+
+        <div id="gpsCoordsText" class="mt-2 text-[11px] font-mono text-slate-500">
+          Awaiting coordinates
+        </div>
+      </section>
+
+      <!-- Active Quest Board Section -->
+      <section id="questSection" class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <span>📜</span> Active Micro-Quest
+          </h2>
+          <span id="questStatusBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+            Awaiting Order
+          </span>
+        </div>
+
+        <!-- Quest Card: Empty State -->
+        <div id="emptyQuestCard" class="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-6 text-center space-y-3">
+          <div class="w-12 h-12 mx-auto rounded-full bg-forest-950/60 border border-forest-800/40 flex items-center justify-center text-2xl text-forest-400">
+            🌱
+          </div>
+          <div class="space-y-1">
+            <h3 class="text-sm font-bold text-slate-200">No Quest Active</h3>
+            <p class="text-xs text-slate-400 max-w-xs mx-auto">
+              Ready to leave your chair? Tap the button below to generate a localized micro-quest from the Quest Master!
+            </p>
+          </div>
+        </div>
+
+        <!-- Quest Card: Active / Rendered State (Hidden by default until generated) -->
+        <div id="activeQuestCard" class="hidden rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-forest-700/40 p-5 space-y-4 shadow-xl shadow-black/40 relative">
+          
+          <!-- Quest Header -->
+          <div class="flex items-start justify-between gap-3 border-b border-slate-800/80 pb-3">
+            <div>
+              <span class="text-[10px] uppercase font-bold tracking-wider text-forest-400">Epic Objective</span>
+              <h3 id="questTitle" class="text-lg font-bold text-white tracking-tight leading-snug">
+                <!-- quest_title -->
+              </h3>
+            </div>
+            <div class="shrink-0 flex items-center gap-1 bg-amber-950/60 border border-amber-600/40 text-amber-300 text-xs font-black px-2.5 py-1 rounded-xl shadow-sm">
+              <span>⭐</span>
+              <span id="questXpReward">150</span>
+              <span class="text-[10px] font-semibold text-amber-400">XP</span>
+            </div>
+          </div>
+
+          <!-- Quest Objective -->
+          <div class="space-y-1 bg-slate-900/70 p-3 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1">
+              <svg class="w-3.5 h-3.5 text-forest-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Mission Objective
+            </span>
+            <p id="questObjective" class="text-xs text-slate-200 leading-relaxed">
+              <!-- objective -->
+            </p>
+          </div>
+
+          <!-- Outdoor Challenge (Touch Grass) -->
+          <div class="space-y-1 bg-forest-950/30 p-3 rounded-xl border border-forest-800/40">
+            <span class="text-[10px] uppercase font-bold text-forest-400 tracking-wider flex items-center gap-1">
+              <span>🌿</span> Outdoor Challenge
+            </span>
+            <p id="questChallenge" class="text-xs text-forest-200 leading-relaxed font-medium">
+              <!-- outdoor_challenge -->
+            </p>
+          </div>
+
+          <!-- Audio Briefing Action (Phase 4 ElevenLabs) -->
+          <div class="pt-1">
+            <button id="audioBriefingBtn" type="button" class="w-full py-2.5 px-3 rounded-xl font-bold text-xs bg-gradient-to-r from-amber-600/20 to-amber-700/20 hover:from-amber-600/30 hover:to-amber-700/30 text-amber-300 hover:text-amber-200 border border-amber-500/40 flex items-center justify-center gap-2 transition active:scale-[0.98] shadow-sm">
+              <span id="audioBriefingIcon">🔊</span>
+              <span id="audioBriefingText">Audio Briefing (ElevenLabs)</span>
+            </button>
+          </div>
+
+          <!-- Quest Actions -->
+          <div class="pt-1 flex gap-2">
+            <button id="completeQuestBtn" type="button" class="flex-1 py-2.5 px-4 rounded-xl font-bold text-xs bg-forest-600 hover:bg-forest-500 active:scale-[0.98] text-white shadow-lg shadow-forest-950 transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Complete & Claim XP
+            </button>
+            <button id="abandonQuestBtn" type="button" class="py-2.5 px-3 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700 transition">
+              Reroll
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- Status / Log Console -->
+      <div id="statusConsole" class="rounded-xl bg-slate-900/50 border border-slate-800/80 p-3 text-[11px] font-mono text-slate-400 flex items-start gap-2">
+        <span class="text-forest-400 shrink-0">ℹ️</span>
+        <div id="statusMessage" class="flex-1 leading-relaxed">
+          System initialized. Click Settings to configure your AI provider mode.
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Bottom Action Navigation Bar (Thumb Accessible on Mobile) -->
+    <div class="fixed bottom-0 left-0 right-0 z-30 pointer-events-none">
+      <div class="w-full max-w-md mx-auto px-4 pb-4 pt-2 pointer-events-auto bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent">
+        <div class="flex items-center gap-2">
+          
+          <!-- Generate Quest Main CTA -->
+          <button id="generateQuestBtn" type="button" class="flex-1 py-3.5 px-6 rounded-2xl font-bold text-sm bg-gradient-to-r from-forest-600 to-emerald-600 hover:from-forest-500 hover:to-emerald-500 active:scale-[0.98] text-white shadow-xl shadow-forest-950/80 border border-forest-400/30 transition flex items-center justify-center gap-2.5 group">
+            <span class="text-lg group-hover:rotate-12 transition transform">🌿</span>
+            <span id="generateBtnText">Generate Quest</span>
+          </button>
+
+          <!-- Quick Settings Toggle -->
+          <button id="footerSettingsBtn" type="button" title="Settings" class="p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition active:scale-95 shadow-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+            </svg>
+          </button>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- Settings Modal (Provider Modes: WebLLM, Local Ollama, Cloud API) -->
+  <!-- ============================================================== -->
+  <div id="settingsModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center hidden" aria-modal="true" role="dialog">
+    <!-- Backdrop Overlay -->
+    <div id="settingsBackdrop" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"></div>
+
+    <!-- Modal Content Card (Bottom Sheet on Mobile, Centered on larger) -->
+    <div class="relative w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto space-y-5 z-10 animate-in fade-in slide-in-from-bottom-6 duration-200">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-forest-950/80 border border-forest-700/50 flex items-center justify-center text-forest-400">
+            ⚙️
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">AI Engine Settings</h3>
+            <p class="text-[11px] text-slate-400">Select & configure your Quest Master engine</p>
+          </div>
+        </div>
+        <button id="closeSettingsBtn" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Settings Form -->
+      <form id="settingsForm" class="space-y-4">
+        
+        <!-- Provider Mode Selection -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">
+            Provider Architecture
+          </label>
+          
+          <div class="grid grid-cols-1 gap-2" id="providerSelectorGroup">
+            
+            <!-- Option 1: WebLLM (In-Browser WebGPU) -->
+            <label class="provider-option relative flex items-start p-3 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800/40 cursor-pointer transition">
+              <input type="radio" name="provider_mode" value="webllm" class="mt-0.5 text-forest-600 focus:ring-forest-500 bg-slate-900 border-slate-700">
+              <div class="ml-3 flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                    🌐 In-Browser WebLLM
+                  </span>
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-forest-950 text-forest-300 border border-forest-800">
+                    WebGPU
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">
+                  100% Client-side. Runs directly in browser via WebGPU. Dynamic model list.
+                </p>
+              </div>
+            </label>
+
+            <!-- Option 2: Local Ollama -->
+            <label class="provider-option relative flex items-start p-3 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800/40 cursor-pointer transition">
+              <input type="radio" name="provider_mode" value="ollama" class="mt-0.5 text-forest-600 focus:ring-forest-500 bg-slate-900 border-slate-700">
+              <div class="ml-3 flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                    🦙 Local Ollama
+                  </span>
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                    Localhost
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">
+                  Connect to your local Ollama instance (default: http://localhost:11434).
+                </p>
+              </div>
+            </label>
+
+            <!-- Option 3: Cloud API -->
+            <label class="provider-option relative flex items-start p-3 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800/40 cursor-pointer transition">
+              <input type="radio" name="provider_mode" value="cloud" class="mt-0.5 text-forest-600 focus:ring-forest-500 bg-slate-900 border-slate-700">
+              <div class="ml-3 flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                    ☁️ Cloud API
+                  </span>
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">
+                    REST API
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">
+                  OpenAI or compatible endpoint (OpenAI, Groq, OpenRouter).
+                </p>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+        <!-- Conditional Section: WebLLM Config -->
+        <div id="sectionWebllmConfig" class="space-y-3 pt-2 border-t border-slate-800">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">
+              WebLLM Model (Dynamic MLC Models)
+            </label>
+            <select id="webllmModelSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-forest-500">
+              <option value="gemma-2-2b-it-q4f16_1-MLC">gemma-2-2b-it-q4f16_1-MLC (Default)</option>
+              <option value="gemma3-1b-it-q4f16_1-MLC">gemma3-1b-it-q4f16_1-MLC</option>
+              <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama-3.2-1B-Instruct-q4f16_1-MLC</option>
+              <option value="SmolLM2-135M-Instruct-q0f16-MLC">SmolLM2-135M-Instruct-q0f16-MLC</option>
+            </select>
+            <p class="text-[10px] text-slate-500 mt-1">Models load from WebLLM prebuiltAppConfig directly in your browser.</p>
+          </div>
+          <div id="webgpuStatusBox" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2 text-[11px]">
+            <span id="webgpuIndicator" class="w-2 h-2 rounded-full bg-slate-500"></span>
+            <span id="webgpuStatusText" class="text-slate-400">Detecting WebGPU support...</span>
+          </div>
+        </div>
+
+        <!-- Conditional Section: Ollama Config -->
+        <div id="sectionOllamaConfig" class="space-y-3 pt-2 border-t border-slate-800 hidden">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Ollama Base URL</label>
+            <input type="url" id="ollamaEndpointInput" placeholder="http://localhost:11434" value="http://localhost:11434" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-forest-500">
+            <p class="text-[10px] text-slate-500 mt-1">Make sure OLLAMA_ORIGINS="*" is allowed if connecting locally from browser.</p>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Model Tag</label>
+            <input type="text" id="ollamaModelInput" placeholder="llama3.2" value="llama3.2" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-forest-500">
+          </div>
+        </div>
+
+        <!-- Conditional Section: Cloud API Config -->
+        <div id="sectionCloudConfig" class="space-y-3 pt-2 border-t border-slate-800 hidden">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">API Endpoint URL</label>
+            <input type="url" id="cloudEndpointInput" placeholder="https://api.openai.com/v1" value="https://api.openai.com/v1" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-forest-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">API Key</label>
+            <input type="password" id="cloudApiKeyInput" placeholder="sk-..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-forest-500">
+            <p class="text-[10px] text-slate-500 mt-1">Saved exclusively in your browser's localStorage.</p>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Model Name</label>
+            <input type="text" id="cloudModelInput" placeholder="gpt-4o-mini" value="gpt-4o-mini" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-forest-500">
+          </div>
+        </div>
+
+        <!-- Section: Partner Integrations (Phase 4: ElevenLabs & Sentry) -->
+        <div id="sectionPartnerIntegrations" class="space-y-3 pt-3 border-t border-slate-800">
+          <label class="block text-xs font-bold uppercase tracking-wider text-amber-400">
+            Partner Integrations (Phase 4)
+          </label>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">ElevenLabs API Key (TTS Voice Briefings)</label>
+            <input type="password" id="elevenlabsApiKeyInput" placeholder="xi-api-key-..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-forest-500">
+            <p class="text-[10px] text-slate-500 mt-1">Generates voice briefings for quests via ElevenLabs TTS API.</p>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Sentry DSN (Performance & Error Tracing)</label>
+            <input type="text" id="sentryDsnInput" placeholder="https://xxx@xxx.ingest.sentry.io/xxx" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-forest-500">
+            <p class="text-[10px] text-slate-500 mt-1">Enables distributed span tracing and error logging via Sentry.</p>
+          </div>
+        </div>
+
+        <!-- Feedback Message Toast in Modal -->
+        <div id="settingsFeedback" class="hidden p-2 rounded-xl bg-forest-950/80 border border-forest-800 text-forest-300 text-xs text-center font-medium">
+          Settings saved successfully!
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="pt-2 flex gap-2">
+          <button type="submit" id="saveSettingsBtn" class="flex-1 py-2.5 px-4 rounded-xl font-bold text-xs bg-forest-600 hover:bg-forest-500 text-white transition active:scale-98 shadow-md">
+            Save Preferences
+          </button>
+          <button type="button" id="cancelSettingsBtn" class="py-2.5 px-4 rounded-xl font-semibold text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+            Cancel
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Main Application Script (ES Module) -->
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

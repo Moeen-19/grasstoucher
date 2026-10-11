@@ -1,0 +1,54 @@
+# ==========================================
+# Environment Variables & Sensitive Secrets
+# ==========================================
+# Protect API keys (ElevenLabs, OpenAI, Groq, Sentry DSN)
+.env
+.env.local
+.env.*.local
+*.env
+
+# ==========================================
+# Operating System & File System Artifacts
+# ==========================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# ==========================================
+# IDE & Editor Configurations
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ==========================================
+# Python & Backend Fallback (if using /backend)
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+.pytest_cache/
+
+# ==========================================
+# JavaScript / Deno / Node Cache & Logs
+# ==========================================
+node_modules/
+.deno/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==========================================
+# Local Scratch & Build Directories
+# ==========================
+dist/
+build/
+scratch/
