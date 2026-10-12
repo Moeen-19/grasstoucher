@@ -53,12 +53,12 @@ Running GrassToucher locally requires no heavy backend dependencies:
 ## Project Structure
 
 GrassToucher/
-├── frontend/             # Client app (index.html, app.js, webllm-engine.js)
-├── backend/              # Optional fallback scripts
-├── docs/                 # Documentation & agent-sessions.md
-├── blueprint.md          # Architectural plan & guidelines
-├── render.yaml           # Render deployment configuration
-└── .gitignore            # Secret & artifact exclusions
+|-- frontend/             # Client app (index.html, app.js, webllm-engine.js)
+|-- backend/              # Optional fallback scripts
+|-- docs/                 # Documentation & agent-sessions.md
+|-- blueprint.md          # Architectural plan & guidelines
+|-- render.yaml           # Render deployment configuration
+`-- .gitignore            # Secret & artifact exclusions
 
 ## Documentation
 
