@@ -51,15 +51,15 @@ Running GrassToucher locally requires no heavy backend dependencies:
 - Enter optional ElevenLabs API Key and Sentry DSN to enable voice briefings and performance tracing.
 
 ## Project Structure
-
+```text
 GrassToucher/
-|-- frontend/             # Client app (index.html, app.js, webllm-engine.js)
-|-- backend/              # Optional fallback scripts
-|-- docs/                 # Documentation & agent-sessions.md
-|-- blueprint.md          # Architectural plan & guidelines
-|-- render.yaml           # Render deployment configuration
-`-- .gitignore            # Secret & artifact exclusions
-
+├── frontend/             # Client app (index.html, app.js, webllm-engine.js)
+├── backend/              # Optional fallback scripts
+├── docs/                 # Documentation & agent-sessions.md
+├── blueprint.md          # Architectural plan & guidelines
+├── render.yaml           # Render deployment configuration
+└── .gitignore            # Secret & artifact exclusions
+```
 ## Documentation
 
 - Architectural Blueprint: blueprint.md
